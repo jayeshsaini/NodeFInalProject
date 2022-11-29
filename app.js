@@ -61,15 +61,16 @@ app.get('/api/Movies', async function(req, res) {
 
     // Testing Pagination
 
-    const page = parseInt(req.query.page)  || 0;
+    const page = parseInt(req.query.page)  || 1;
     const limit = parseInt(req.query.limit)  || 6;
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
     const results = {};
+    const totalDocs = await Movies.countDocuments().exec();
 
-    if (endIndex < await Movies.countDocuments().exec()) {
+    if (endIndex < totalDocs) {
       results.next = {
         page: page + 1,
         limit: limit
@@ -85,7 +86,7 @@ app.get('/api/Movies', async function(req, res) {
     try {
       results.results = await Movies.find().limit(limit).skip(startIndex).lean().exec();
     //   res.json(results.results);
-      res.render('MoviesData', { title: 'All Movies', data: results.results, pagination: { page: page, limit:limit,totalRows: 5 } });
+      res.render('MoviesData', { title: 'All Movies', data: results.results, pagination: { page: page, limit:limit,totalRows: 5, totalRows: totalDocs} });
     } catch (e) {
       res.status(500).json({ message: e.message })
     }
@@ -137,15 +138,16 @@ app.route('/api/Movies')
 	}, function(err, Movies) {
 		if (err)
 			res.send(err);
- 
+    
+    res.send('Successfully! movie has been created.');
 		// get and return all the Movies after newly created employe record
-		Movies.find({}).lean()
-        // execute query
-        .exec(function(err, Movies) {
-			if (err)
-				res.send(err);
-			res.render('MoviesData', { title: 'All Movies', data: Movies });
-		});
+		// Movies.find({}).lean()
+    //     // execute query
+    //     .exec(function(err, Movies) {
+		// 	if (err)
+		// 		res.send(err);
+		// 	res.render('MoviesData', { title: 'All Movies', data: Movies });
+		// });
 	});
  
 });
