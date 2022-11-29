@@ -1,0 +1,26 @@
+<h1>{{title}}</h1>
+<p>Welcome to {{title}}</p>
+
+<div class="container">
+    <form method="POST" action="/api/insert/books">
+        <label>ISBN : </label>
+        <input type="text" name="ISBN" placeholder="Enter ISBN"><br><br>
+
+        <label>Image URL : </label>
+        <input type="text" name="img" placeholder="Enter IMG URL"><br><br>
+
+        <label>Title : </label>
+        <input type="text" name="title" placeholder="Enter Title"><br><br>
+
+        <label>Author : </label>
+        <input type="text" name="author" placeholder="Enter Author"><br><br>
+
+        <label>Inventory : </label>
+        <input type="text" name="inventory" placeholder="Enter Inventory"><br><br>
+
+        <label>Category : </label>
+        <input type="text" name="category" placeholder="Enter Category"><br><br>
+        
+        <input type="submit" value="Insert">
+    </form>
+</div>

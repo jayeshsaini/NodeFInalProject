@@ -1,0 +1,52 @@
+<h1>{{title}}</h1>
+<p>{{title}} showing the Dataset</p>
+
+<table>
+    <tr>
+        <th>Plot</th>
+        <th>Genre</th>
+        <th>Runtime</th>
+        <th>Cast</th>
+        <th>Netflix Comments</th>
+        <th>Title</th>
+        <th>Full Plot</th>
+        <th>Countries</th>
+        <th>Released</th>
+        <th>Directors</th>
+        <th>Rated</th>
+        <th>Awards</th>
+        <th>Last Updated</th>
+        <th>Year</th>
+        <th>IMDB</th>
+        <th>Type</th>
+        <th>Rotten Tomato</th>
+    </tr>
+
+    {{#each data}}
+    <tr>
+        <td>{{this.plot}}</td>
+        <td>{{this.genre}}</td>
+        <td>{{this.runtime}}</td>
+        <td>{{this.cast}}</td>
+        <td>{{this.num_nflix_comments}}</td>
+        <td>{{this.title}}</td>
+        <td>{{this.fullplot}}</td>
+        <td>{{this.countries}}</td>
+        <td>{{this.released}}</td>
+        <td>{{this.directors}}</td>
+        <td>{{this.rated}}</td>
+        <td>{{this.awards.wins}}</td>
+        <td>{{this.lastupdated}}</td>
+        <td>{{this.year}}</td>
+        <td>{{this.imdb.rating}}</td>
+        <td>{{this.type}}</td>
+        <td>
+            Viewer Rating:{{this.tomatoes.viewer.rating}}
+            Critic Rating:{{this.tomatoes.critic.rating}}
+        </td>
+    </tr>
+    {{/each}}
+
+</table>
+
+{{{paginateHelper pagination}}}
