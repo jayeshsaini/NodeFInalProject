@@ -8,15 +8,15 @@
  * Group member Name: _Vikram Ashok_ Student IDs: _N01469489_ Date: __30/11/2022___
  * *********************************************************************************/
 
-var express  = require('express');
-var mongoose = require('mongoose');
+var express = require('express');
+//  var mongoose = require('mongoose');
 var path = require('path');
-var app      = express();
+var app = express();
 var database_atlas = require('./config/database_atlas');
 var bodyParser = require('body-parser');         // pull information from HTML POST (express4)
- 
-var port     = process.env.PORT || 8000;
-app.use(bodyParser.urlencoded({'extended':'true'}));            // parse application/x-www-form-urlencoded
+
+var port = process.env.PORT || 8000;
+app.use(bodyParser.urlencoded({ 'extended': 'true' }));            // parse application/x-www-form-urlencoded
 app.use(bodyParser.json());                                     // parse application/json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse application/vnd.api+json as json
 
@@ -27,7 +27,7 @@ var paginateHelper = require('express-handlebars-paginate');
 const HBS = exphbs.create({
     //Create custom HELPER 
     helpers: {
-        
+
     }
 });
 
@@ -37,11 +37,16 @@ HBS.handlebars.registerHelper('paginateHelper', paginateHelper.createPagination)
 app.engine('.hbs', HBS.engine);
 app.set('view engine', '.hbs');
 
-mongoose.connect(database_atlas.url);
-const db = mongoose.connection;
 
+var db = require('./moviesModule.js');
+// if (db.intialize(database_atlas.url)){
+//     console.log("Database Connected");
+// }
 
-var Movies = require('./models/movies');
+db.initialize(database_atlas.url);
+    
+
+// var Movies = require('./models/movies');
 
 // Setting the path for default app route to use "main.hbs"
 app.use(express.static(path.join(__dirname, 'public')));
@@ -54,121 +59,43 @@ app.get('/', function (req, res) {
     res.render('index', { title: 'Movies Data' });
 });
 
- 
+app.get('/api', function (req, res) {
+    res.render('formData', { title: 'Get Movie' });
+});
+
+
 //get all Movies data from db
-app.get('/api/Movies', async function(req, res) {
-	// use mongoose to get all todos in the database
-	// Movies.find({}).lean()
-    // // execute query
-    // .exec(function(err, Movies) {
-	// 	// if there is an error retrieving, send the error otherwise send data
-	// 	if (err)
-	// 		res.send(err);
-	// 	//res.json(Movies); // return all Moviess in JSON format
-    //     res.render('MoviesData', { title: 'All Movies', data: Movies, pagination: { page: 1, limit:10,totalRows: 5 } });
-	// });
-
-
-    // Testing Pagination
-
-    const page = parseInt(req.query.page)  || 1;
-    const limit = parseInt(req.query.limit)  || 6;
-
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-
-    const results = {};
-    const totalDocs = await Movies.countDocuments().exec();
-
-    if (endIndex < totalDocs) {
-      results.next = {
-        page: page + 1,
-        limit: limit
-      }
-    }
+app.get('/api/Movies', async function (req, res) {
     
-    if (startIndex > 0) {
-      results.previous = {
-        page: page - 1,
-        limit: limit
-      }
-    }
-    try {
-      results.results = await Movies.find().limit(limit).skip(startIndex).lean().exec();
-    //   res.json(results.results);
-      res.render('MoviesData', { title: 'All Movies', data: results.results, pagination: { page: page, limit:limit,totalRows: 5, totalRows: totalDocs} });
-    } catch (e) {
-      res.status(500).json({ message: e.message })
-    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const title = req.query.title || '';
+
+    var movieData = await db.getAllMovies(page, limit, title);
+    console.log(movieData);
+    var results = movieData[0];
+    var totalDocs = movieData[1];
+    
+    res.render('MoviesData', { title: 'All Movies', data: results.results, pagination: { page: page, limit: limit, totalRows: totalDocs } });
+    
 
 });
 
 // get a Movies with ID of 1
-app.get('/api/Movies/:Movies_id', function(req, res) {
-	let id = req.params.Movies_id;
-	Movies.findById(id, function(err, Movies) {
-		if (err)
-			res.send(err)
- 
-		res.json(Movies);
-	});
- 
+app.get('/api/Movies/:Movies_id', function (req, res) {
+    let id = req.params.Movies_id;
+    var data = db.getMovieById(id);
+    res.json(data);
+
 });
 
 
 // using route to handling multiple requests
-app.route('/api/Movies')
-    .get((req, res) => {
-        res.render('formData', {title: 'Insert New Movie'})
-    })
-// create Movies and send back all Movies after creation
-    .post((req, res) => {
-
+app.post('/api/Movies', async function (req, res) {
     // create mongose method to create a new record into collection
     console.log(req.body);
 
-	Movies.create({
-		plot: req.body.plot,
-        genre: req.body.genre,
-        runtime: req.body.runtime,
-        cast: req.body.cast,
-        num_nflix_comments: req.body.num_nflix_comments,
-        title: req.body.title,
-        fullplot: req.body.fullplot,
-        countries: req.body.countries,
-        released: req.body.released,
-        directors: req.body.directors,
-        rated: req.body.rated,
-        awards: req.body.awards,
-        lastupdated: req.body.lastupdated,
-        year: req.body.year,
-        imdb: req.body.imdb,
-        type: req.body.type,
-        tomatoes: req.body.tomatoes
-	}, function(err, Movies) {
-		if (err)
-			res.send(err);
-    
-    res.send('Successfully! movie has been created.');
-		// get and return all the Movies after newly created employe record
-		// Movies.find({}).lean()
-    //     // execute query
-    //     .exec(function(err, Movies) {
-		// 	if (err)
-		// 		res.send(err);
-		// 	res.render('MoviesData', { title: 'All Movies', data: Movies });
-		// });
-	});
- 
-});
-
-
-// create Movies and send back all Movies after creation
-app.put('/api/Movies/:movies_id', function(req, res) {
-	// create mongose method to update an existing record into collection
-    console.log(req.body);
-
-	let id = req.params.movies_id;
     var data = {
         plot: req.body.plot,
         genre: req.body.genre,
@@ -189,26 +116,56 @@ app.put('/api/Movies/:movies_id', function(req, res) {
         tomatoes: req.body.tomatoes
     }
 
-	// save the user
-	Movies.findByIdAndUpdate(id, data, function(err, Movies) {
-	if (err) throw err;
+    var movie = db.addNewMovie(data);
 
-	res.send('Successfully! movie updated - '+ Movies.title);
-	});
+    res.send('Successfully! movie has been created.');
+
+});
+
+
+// create Movies and send back all Movies after creation
+app.put('/api/Movies/:movies_id', function (req, res) {
+    // create mongose method to update an existing record into collection
+    console.log(req.body);
+
+    let id = req.params.movies_id;
+    var data = {
+        plot: req.body.plot,
+        genre: req.body.genre,
+        runtime: req.body.runtime,
+        cast: req.body.cast,
+        num_nflix_comments: req.body.num_nflix_comments,
+        title: req.body.title,
+        fullplot: req.body.fullplot,
+        countries: req.body.countries,
+        released: req.body.released,
+        directors: req.body.directors,
+        rated: req.body.rated,
+        awards: req.body.awards,
+        lastupdated: req.body.lastupdated,
+        year: req.body.year,
+        imdb: req.body.imdb,
+        type: req.body.type,
+        tomatoes: req.body.tomatoes
+    }
+
+    // save the user
+    var movie = db.updateMovieById(data, id);
+    res.send('Successfully! movie updated - ' + data.title);
+    
 });
 
 // delete a Movies by id
-app.delete('/api/Movies/:movies_id', function(req, res) {
-	console.log(req.params.movies_id);
-	let id = req.params.movies_id;
-	Movies.deleteOne({
-		_id : id
-	}, function(err) {
-		if (err)
-			res.send(err);
-		else
-			res.send('Successfully! movie has been Deleted.');	
-	});
+app.delete('/api/Movies/:movies_id', function (req, res) {
+    console.log(req.params.movies_id);
+    let id = req.params.movies_id;
+    var deleted = db.deleteMovieById(id);
+    if (deleted) {
+        res.send('Successfully! deleted movie with Id - ' + id);
+    } else {
+        res.send('Id not found');
+    }
+
 });
 
 app.listen(port);
