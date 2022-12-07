@@ -8,12 +8,14 @@
  * Group member Name: _Vikram Ashok_ Student IDs: _N01469489_ Date: __30/11/2022___
  * *********************************************************************************/
 
+// Importing node modules
 var express = require('express');
 var path = require('path');
 var app = express();
 var database_atlas = require('./config/database_atlas');
 var bodyParser = require('body-parser');         // pull information from HTML POST (express4)
 
+// setting port and body parser for reading form data and url
 var port = process.env.PORT || 8000;
 app.use(bodyParser.urlencoded({ 'extended': 'true' }));            // parse application/x-www-form-urlencoded
 app.use(bodyParser.json());                                     // parse application/json
@@ -23,6 +25,7 @@ app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse applica
 const exphbs = require('express-handlebars');
 var paginateHelper = require('express-handlebars-paginate');
 
+// loading json web token
 const jwt=require('jsonwebtoken');
 
 const HBS = exphbs.create({
@@ -30,16 +33,17 @@ const HBS = exphbs.create({
     helpers: {}
 });
 
+// for pagination
 HBS.handlebars.registerHelper('paginateHelper', paginateHelper.createPagination);
 
 // Sets handlebars configurations
 app.engine('.hbs', HBS.engine);
 app.set('view engine', '.hbs');
 
-
+// for adding the movies db function
 var db = require('./moviesModule.js');
 
-
+// Connecting to the MongoDB atlas
 db.initialize(database_atlas.url);
 var token;
 
@@ -55,6 +59,7 @@ app.get('/', function (req, res) {
     res.render('index', { title: 'Movies Data' });
 });
 
+// for verifying the token with JWT Secret
 function verifyToken(req,res,next){ 
     req.headers['authorization'] = token;
     const bearerHeadr = req.headers['authorization'] 
@@ -68,6 +73,7 @@ function verifyToken(req,res,next){
     } 
 }
 
+// for getting the form to show the movies
 app.get('/api', verifyToken, function (req, res) {
 
     jwt.verify(req.token, process.env.JWT_SECRET, (err, decoded)=> { 
@@ -82,10 +88,12 @@ app.get('/api', verifyToken, function (req, res) {
     }); 
 });
 
+// first route to authenticate and verify user
 app.get('/api/login', function (req, res) {
     res.render('formLogin', { title: 'Movie API Login' });
 });
 
+// for signing a verified user with jwt
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
     console.log(`${username} is trying to login ..`);
@@ -105,7 +113,6 @@ app.post("/login", (req, res) => {
 //get all Movies data from db
 app.get('/api/Movies', async function (req, res) {
     
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 6;
     const title = req.query.title || '';
@@ -117,19 +124,17 @@ app.get('/api/Movies', async function (req, res) {
     
     res.render('MoviesData', { title: 'All Movies', data: results.results, pagination: { page: page, limit: limit, totalRows: totalDocs } });
     
-
 });
 
-// get a Movies with ID of 1
-app.get('/api/Movies/:Movies_id', function (req, res) {
+// get a Movies by unique ID
+app.get('/api/Movies/:Movies_id', async function (req, res) {
     let id = req.params.Movies_id;
-    var data = db.getMovieById(id);
+    var data = await db.getMovieById(id);
     res.json(data);
-
 });
 
 
-// using route to handling multiple requests
+// for creating a new movie
 app.post('/api/Movies', async function (req, res) {
     // create mongose method to create a new record into collection
     console.log(req.body);
@@ -161,7 +166,7 @@ app.post('/api/Movies', async function (req, res) {
 });
 
 
-// create Movies and send back all Movies after creation
+// Update a movie with new data
 app.put('/api/Movies/:movies_id', function (req, res) {
     // create mongose method to update an existing record into collection
     console.log(req.body);
@@ -206,5 +211,6 @@ app.delete('/api/Movies/:movies_id', function (req, res) {
 
 });
 
+// for starting the app, listening to port
 app.listen(port);
 console.log("App listening on port : " + port);

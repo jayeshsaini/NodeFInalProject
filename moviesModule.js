@@ -1,6 +1,8 @@
+// importing the node modules
 var mongoose = require('mongoose');
 var Movies = require('./models/movies');
 
+// for connecting to MongoDB atlas
 async function initialize(url) {
     try {
         await mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}, () =>
@@ -12,6 +14,7 @@ async function initialize(url) {
     }
 }
 
+// for adding a new movie
 async function addNewMovie(data) {
     var createMovie = await Movies.create(data);
     console.log(createMovie);
@@ -19,6 +22,7 @@ async function addNewMovie(data) {
     return allMovies;
 }
 
+// for getting all the movies based on page no, limit and title
 async function getAllMovies(page, perPage, title) {
 
     try {
@@ -61,16 +65,17 @@ async function getAllMovies(page, perPage, title) {
 
 }
 
+// get movie by Id
 async function getMovieById(Id) {
     try{
-        var movieData = await Movies.findById(id);
-        console.log(movieData);
-        return movieData; 
+        var movieData = await Movies.findById(Id);
+        return movieData;
     }catch(error){
         return console.error(error);
     }
 }
 
+// update the movie by Id
 async function updateMovieById(data, Id) {
     try {
         await Movies.findByIdAndUpdate(Id, data);
@@ -80,6 +85,7 @@ async function updateMovieById(data, Id) {
     }
 }
 
+// Delete the movie by Id
 async function deleteMovieById(Id) {
     try {
         await Movies.findByIdAndDelete(Id);
@@ -89,6 +95,7 @@ async function deleteMovieById(Id) {
     }
 }
 
+// exporting all the modules
 module.exports = {
     initialize,
     addNewMovie,
