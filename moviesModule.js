@@ -32,7 +32,7 @@ async function getAllMovies(page, perPage, title) {
         const endIndex = page * limit;
 
         const results = {};
-        var totalDocs = Movies.countDocuments().exec();
+        var totalDocs = await Movies.countDocuments().exec();
 
         if (endIndex < totalDocs) {
             results.next = {
